@@ -9,9 +9,7 @@ services:
       - "8000:8000"
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - MONGODB_URI=${MONGODB_URI}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - TAILVY_API_KEY=${TAILVY_API_KEY}
+      - ALLOWED_ORIGINS=http://localhost:3002,http://localhost:3000,http://localhost:3001
     volumes:
       - ./backend:/app
     restart: unless-stopped
@@ -28,7 +26,7 @@ services:
     ports:
       - "3002:3002"
     environment:
-      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_API_BASE_URL=http://localhost:8000
       - PORT=3002
     volumes:
       - ./frontend:/app

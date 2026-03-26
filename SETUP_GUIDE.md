@@ -225,7 +225,6 @@ Open `http://localhost:3002` in your browser. You should see:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/` | Root endpoint with API info |
 | `GET` | `/health` | Health check endpoint |
 | `POST` | `/travel/plan` | Generate travel itinerary with budget breakdown |
 | `POST` | `/chatbot/ask` | AI chatbot response |
@@ -274,7 +273,7 @@ curl -X POST "http://localhost:8000/chatbot/ask" \
 
 1. **Homepage** (`/`) - Landing page with hero animations and features
 2. **Travel Planner** (`/plan`) - Main itinerary generation form with budget selection
-3. **Itinerary View** (`/itinerary`) - Detailed itinerary display with rich text formatting
+3. **Itinerary View** (`/itinerary-view`) - Detailed itinerary display with rich text formatting
 4. **Chatbot** (`/chatbot`) - AI travel assistant with conversational interface
 5. **About** (`/about`) - Team and project information
 6. **Demo** (`/demo`) - Rich text formatting demonstration
@@ -510,7 +509,7 @@ logger.error("Failed to connect to AI service")
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [React TypeScript Guide](https://react-typescript-cheatsheet.netlify.app/)
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
-- [Vite Documentation](https://vitejs.dev/)
+- [Create React App Docs](https://create-react-app.dev/)
 
 ## 🤝 Support
 

@@ -16,7 +16,6 @@ This document contains all the APIs, endpoints, and external services used in th
 
 | Method | Endpoint | Description | Request Body | Response |
 |--------|----------|-------------|--------------|----------|
-| `GET` | `/` | Root endpoint with API info | - | API information |
 | `GET` | `/health` | Health check endpoint | - | `{"status": "healthy", "timestamp": "...", "travel_module": true}` |
 | `POST` | `/travel/plan` | Generate travel itinerary | TravelRequest | TravelResponse with itinerary, budget, map data |
 | `POST` | `/chatbot/ask` | AI chatbot response | ChatbotRequest | ChatbotResponse with AI reply |
@@ -29,7 +28,7 @@ This document contains all the APIs, endpoints, and external services used in th
 |-------|-----------|-------------|
 | `/` | HomePage | Landing page with hero animations |
 | `/plan` | TravelPlanner | Main itinerary generation form |
-| `/itinerary` | ItineraryView | Detailed itinerary display |
+| `/itinerary-view` | ItineraryView | Detailed itinerary display |
 | `/chatbot` | Chatbot | AI travel assistant |
 | `/about` | About | Team and project information |
 | `/demo` | DemoItinerary | Rich text formatting demonstration |
