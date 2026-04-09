@@ -271,10 +271,7 @@ Explore our comprehensive vision for integrating Travelian India into the Samsun
 - ✅ **Budget Planning**: Smart budget parsing and allocation
 - ✅ **Samsung Vision**: Comprehensive ecosystem integration roadmap
 
-#### 📞 Contact
-**Team Leader**: Pratik Kumar  
-**Email**: pratik2002singh@gmail.com  
-**LinkedIn**: [Pratik Kumar](https://www.linkedin.com/in/pratik-kumar-198172186)
+
 
 
 
