@@ -310,16 +310,20 @@ def describe_meal_stop(
     distance_km: float,
     dest_display: str,
     budget_hint: str,
-) -> Tuple[str, str]:
+) -> Tuple[str, str, int]:
     hub = meal_hub(city_key, meal)
     if "Budget" in budget_hint or "Under ₹10" in budget_hint:
         spend = "₹80–250 per person typical"
+        numeric_cost = 150
     elif "Premium" in budget_hint or "Above ₹50" in budget_hint:
         spend = "₹600–1,800 per person typical"
+        numeric_cost = 1200
     elif "Luxury" in budget_hint:
         spend = "₹400–1,200 per person typical"
+        numeric_cost = 800
     else:
         spend = "₹200–650 per person typical"
+        numeric_cost = 400
     title_map = {
         "breakfast": f"Breakfast — {hub.split('/')[0].strip()}",
         "lunch": f"Lunch — {hub.split('/')[0].strip()}",
@@ -333,7 +337,7 @@ def describe_meal_stop(
         f"**Typical spend:** {spend} (drinks extra)\n\n"
         f"**Notes:** Pick busy kitchens; bottled water; align spice level when ordering."
     )
-    return title, desc
+    return title, desc, numeric_cost
 
 
 def pick_landmark(landmarks: List[Landmark], index: int) -> Landmark:

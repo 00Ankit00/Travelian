@@ -22,7 +22,7 @@ A modern AI-powered travel itinerary planner built with React + FastAPI, specifi
 ### Prerequisites
 - **Node.js 18+** with npm
 - **Python 3.8+** with pip
-- **Google Gemini API Key** (required)
+- **Groq API Key** (required for ultra-fast, authentic LLM queries)
 
 ### Installation & Setup
 
@@ -39,7 +39,7 @@ A modern AI-powered travel itinerary planner built with React + FastAPI, specifi
    
    # Copy environment template and add your API keys
    cp env.example .env
-   # Edit .env file with your actual API keys
+   # Edit .env file with your actual API keys (especially GROQ_API_KEY)
    
    python main.py
    ```
@@ -60,26 +60,36 @@ A modern AI-powered travel itinerary planner built with React + FastAPI, specifi
 
 ## ✨ Features
 
-### 🎯 Core Features
-- **AI-Powered Itinerary Generation**: Create detailed day-by-day travel plans with budget breakdowns
-- **Multi-Agent System**: Specialized AI agents for research, accommodation, transportation, activities, dining, and itinerary integration
-- **Interactive Maps**: Visualize travel routes with OpenStreetMap integration (no API key required)
-- **Budget-Aware Planning**: Smart budget parsing and allocation across accommodation, food, transport, and activities
-- **Rich Text Formatting**: Beautiful book-like itinerary display with bold, italic, and bullet points
-- **Responsive Design**: Modern UI that works seamlessly across desktop and mobile devices
+### 🎯 Core Itinerary Features
+- **Authentic LLM Orchestration**: Transitioned to the **Groq API** (`llama-3.1-8b-instant`) for near-instant, real-world data processing, replacing previous mock models.
+- **7-Agent Execution Pipeline**: A specialized multi-agent swarm (Research, Accommodation, Transport, Activities, Dining, Itinerary, and Chatbot) that works in parallel to build plans.
+- **Budget-Optimized Planning**: Intelligent parsing of user budget levels (Budget, Moderate, Luxury, Premium) to curate realistic travel recommendations.
+- **Rich Text Itineraries**: Generated plans are rendered with professional typography, bold highlighting, and structured bullet points for readability.
+- **Session-Based Persistence**: Your plan remains stored in the browser's local storage, ensuring you don't lose progress on refresh.
 
-### 🎨 UI/UX Features
-- **Smooth Hero Animations**: GSAP-powered animations with auto-play functionality
-- **Indian Theme**: Orange and green color scheme inspired by the Indian tricolor
-- **Loading States**: Elegant loading spinners and progress indicators
-- **Toast Notifications**: User-friendly feedback for all actions
-- **Session Storage**: Persistent data across browser sessions
+### 👥 TripSync & Social Features
+- **Dynamic Group Coordination**: The specialized TripSync module allows users to join or create travel groups for specific dates and destinations.
+- **Map-to-Sync Registration**: Integrated **Leaflet.js** map allowing travelers to double-click any location on the world map to immediately pull up the Sync-Registration interface.
+- **Live Group Tracking**: Real-time visibility into group capacity, member IDs, and matching scores for collaborative planning.
 
-### 🗺️ Map Features
-- **OpenStreetMap Integration**: Free, no API key required
-- **External Links**: Direct links to Google Maps and OpenStreetMap
-- **Error Handling**: Graceful fallbacks when maps fail to load
-- **Route Visualization**: Origin to destination route display
+### 🚀 Smart Crowd Insights
+- **Capacity Level Tracking**: Visual indicators (Low/Medium/High) showing live tourist density for global destinations.
+- **Optimal Visit Time Prediction**: AI-calculated "Best at HH:MM AM/PM" badges helping travelers avoid peak congestion.
+- **High-Contrast Heatmaps (Internal)**: Mathematical trend analysis based on location hashes to predict upcoming density spikes.
+- **Signal-Based Analysis**: Factors in weather impact scores, local event intensity, and weekend/holiday weighting for every prediction.
+- **Alternative Recommendations**: Dynamic suggestions for "Low-Crowd" nearby places if your primary destination is currently at high capacity.
+
+### 🎨 Premium UI/UX & Animations
+- **Cinematic Footer**: High-impact footer featuring a semi-transparent dark overlay on top of looping background video (`.mp4`) for a premium digital experience.
+- **GSAP & Framer Motion**: Advanced micro-animations for the hero section, loading transitions, and results timeline entrance.
+- **Modern Dark/Light Themes**: A sleek, high-contrast dark-mode focused aesthetic with vibrant "Indian Tricolor" accenting (Saffron/Olive).
+- **Real-time Stream Indicators**: Progressive loading bars and status notes showing exactly which AI agent is "thinking" during the generation process.
+
+### 🗺️ Mapping & Navigation
+- **Leaflet & OpenStreetMap**: Full interactive map integration that requires **zero API keys** to visualize travel routes.
+- **Dynamic Route Drawing**: Automatic polyline visualization from Origin to Destination on every generated plan.
+- **Proximity Geocoding**: Reverse-geocoding of map clicks to identify city names for instant trip planning.
+- **One-Tap External Directions**: Deep-linking directly into Google Maps and OpenStreetMap for turn-by-turn navigation.
 
 ## 💻 Usage
 
@@ -99,22 +109,21 @@ Both frontend and backend use environment files for configuration:
 1. **Backend Environment** (`backend/.env`)
    ```bash
    # Required
-   GEMINI_API_KEY=your_google_gemini_api_key_here
+   GROQ_API_KEY=your_groq_api_key_here
+   GROQ_MODEL=llama-3.1-8b-instant
    
    # Optional
    TAILVY_API_KEY=your_tailvy_api_key_here
    MONGODB_URI=your_mongodb_connection_string_here
-   OPENAI_API_KEY=your_openai_api_key_here
    ```
 
 2. **Frontend Environment** (`frontend/.env`)
    ```bash
    REACT_APP_API_BASE_URL=http://localhost:8000
-   REACT_APP_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
    ```
 
 ### Required API Keys
-- **Google Gemini API Key**: Get from https://ai.google.dev/
+- **Groq API Key**: Register at https://console.groq.com/
 
 ### Optional API Keys
 - **Tailvy API Key**: For enhanced travel recommendations
@@ -209,7 +218,7 @@ The application follows a modern full-stack architecture where the React fronten
 - **Server**: Uvicorn 0.24.0
 - **Validation**: Pydantic 2.5.0
 - **AI Framework**: LangChain 0.1.0
-- **Language Model**: Google Generative AI (Gemini) 0.3.2
+- **Language Model**: Groq (`llama-3.1-8b-instant`)
 - **Environment**: Python-dotenv 1.0.0
 
 ### Optional Integrations

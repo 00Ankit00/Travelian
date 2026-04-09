@@ -126,6 +126,23 @@ except ImportError:
     TRAVEL_MODULE_AVAILABLE = False
     print("Travel module not available")
 
+class ExternalSignals(BaseModel):
+    weather_impact_score: float
+    is_holiday: bool
+    event_intensity: float
+
+class LocationCrowdData(BaseModel):
+    location_id: str
+    current_level: Literal["Low", "Medium", "High"]
+    prediction_trend: List[int]  # 24h trend
+    best_time_to_visit: str
+    signals: ExternalSignals
+
+class CrowdPredictionResponse(BaseModel):
+    location: str
+    date: str
+    data: LocationCrowdData
+
 # Initialize FastAPI app
 app = FastAPI(
     title="Travelian API",
@@ -500,6 +517,8 @@ def build_structured_itinerary(
         if day_index == 1:
             items: List[ItineraryItem] = []
             if intercity_distance:
+                # Estimate transport cost at ~₹10/km (mix of rail/road) or a fraction of per-item cost
+                transport_cost = int(intercity_distance * 10)
                 items.append(
                     ItineraryItem(
                         time="07:00 AM",
@@ -510,7 +529,7 @@ def build_structured_itinerary(
                             f"**Plan:** Boarding buffer, ID, and tickets (phone + backup printout).\n\n"
                             f"**On arrival:** Head toward **{dest_display}** city centre / your stay."
                         ),
-                        cost=per_item_cost * 2,
+                        cost=transport_cost,
                         duration="3-6 hours",
                         distanceKm=intercity_distance,
                         type="transport",
@@ -534,7 +553,7 @@ def build_structured_itinerary(
                     )
                 )
             lm_ori = pick_landmark(landmarks, 0)
-            lunch_title, lunch_desc = describe_meal_stop(
+            lunch_title, lunch_desc, lunch_cost = describe_meal_stop(
                 city_key,
                 "lunch",
                 "12:30 PM",
@@ -543,7 +562,7 @@ def build_structured_itinerary(
                 dest_display,
                 budget_str,
             )
-            dinner_title, dinner_desc = describe_meal_stop(
+            dinner_title, dinner_desc, dinner_cost = describe_meal_stop(
                 city_key,
                 "dinner",
                 "06:30 PM",
@@ -558,7 +577,7 @@ def build_structured_itinerary(
                         time="12:30 PM",
                         title=f"Hotel check-in & lunch — {dest_display}",
                         description=lunch_desc,
-                        cost=per_item_cost,
+                        cost=lunch_cost,
                         duration="1.5 hours",
                         distanceKm=round(local_day_distances[0], 1),
                         type="meal",
@@ -570,7 +589,7 @@ def build_structured_itinerary(
                         description=describe_landmark_visit(
                             lm_ori, "03:00 PM", "2 hours", dest_display
                         ),
-                        cost=max(per_item_cost, lm_ori.entry_inr),
+                        cost=lm_ori.entry_inr,
                         duration="2 hours",
                         distanceKm=round(lm_ori.distance_km, 1),
                         type="activity",
@@ -581,7 +600,7 @@ def build_structured_itinerary(
                         time="06:30 PM",
                         title=dinner_title,
                         description=dinner_desc,
-                        cost=per_item_cost,
+                        cost=dinner_cost,
                         duration="1.5 hours",
                         distanceKm=round(local_day_distances[2], 1),
                         type="meal",
@@ -595,7 +614,7 @@ def build_structured_itinerary(
             lm_b = pick_landmark(landmarks, spot_off + 1)
             lm_e = pick_landmark(landmarks, spot_off + 2)
 
-            br_title, br_desc = describe_meal_stop(
+            br_title, br_desc, br_cost = describe_meal_stop(
                 city_key,
                 "breakfast",
                 start_time,
@@ -604,7 +623,7 @@ def build_structured_itinerary(
                 dest_display,
                 budget_str,
             )
-            lu_title, lu_desc = describe_meal_stop(
+            lu_title, lu_desc, lu_cost = describe_meal_stop(
                 city_key,
                 "lunch",
                 "12:30 PM",
@@ -613,7 +632,7 @@ def build_structured_itinerary(
                 dest_display,
                 budget_str,
             )
-            di_title, di_desc = describe_meal_stop(
+            di_title, di_desc, di_cost = describe_meal_stop(
                 city_key,
                 "dinner",
                 evening_time,
@@ -651,7 +670,7 @@ def build_structured_itinerary(
                     description=describe_landmark_visit(
                         lm_a, "09:00 AM", activity_duration, dest_display
                     ),
-                    cost=max(per_item_cost, lm_a.entry_inr),
+                    cost=lm_a.entry_inr,
                     duration=activity_duration,
                     distanceKm=round(lm_a.distance_km, 1),
                     type="activity",
@@ -665,7 +684,7 @@ def build_structured_itinerary(
                     time=start_time,
                     title=br_title,
                     description=br_desc,
-                    cost=per_item_cost,
+                    cost=br_cost,
                     duration="45 mins",
                     distanceKm=round(local_day_distances[0], 1),
                     type="meal",
@@ -676,7 +695,7 @@ def build_structured_itinerary(
                     time="12:30 PM",
                     title=lu_title,
                     description=lu_desc,
-                    cost=per_item_cost,
+                    cost=lu_cost,
                     duration="1 hour",
                     distanceKm=round(local_day_distances[2], 1),
                     type="meal",
@@ -688,7 +707,7 @@ def build_structured_itinerary(
                     description=describe_landmark_visit(
                         lm_b, "02:00 PM", activity_duration, dest_display
                     ),
-                    cost=max(per_item_cost, lm_b.entry_inr),
+                    cost=lm_b.entry_inr,
                     duration=activity_duration,
                     distanceKm=round(lm_b.distance_km, 1),
                     type="activity",
@@ -701,7 +720,7 @@ def build_structured_itinerary(
                     description=describe_landmark_visit(
                         lm_e, "05:30 PM", "1.5 hours", dest_display
                     ),
-                    cost=max(per_item_cost, lm_e.entry_inr),
+                    cost=lm_e.entry_inr,
                     duration="1.5 hours",
                     distanceKm=round(lm_e.distance_km, 1),
                     type="entertainment",
@@ -712,7 +731,7 @@ def build_structured_itinerary(
                     time=evening_time,
                     title=di_title,
                     description=di_desc,
-                    cost=per_item_cost,
+                    cost=di_cost,
                     duration="1.5 hours",
                     distanceKm=round(local_day_distances[5], 1),
                     type="meal",
@@ -910,6 +929,172 @@ async def search_bookings(request: BookingSearchRequest):
         logging.exception("Booking search failed")
         raise HTTPException(status_code=500, detail=f"Booking search failed: {str(e)}")
 
+
+# ==========================================
+# TRIPSYNC: MOCK DATA & MATCHING ENDPOINT
+# ==========================================
+
+MOCK_GROUPS: List[Dict[str, Any]] = [
+    {
+        "group_id": "GRP-1001", "admin_id": "USR-882", "member_ids": ["USR-882", "USR-104", "USR-999"], "max_capacity": 6,
+        "destination": "Goa", "dates": {"start": "2026-11-10", "end": "2026-11-15"}, "budget_range": {"min": 15000, "max": 25000}, "status": "OPEN",
+    },
+    {
+        "group_id": "GRP-1002", "admin_id": "USR-411", "member_ids": ["USR-411", "USR-002"], "max_capacity": 4,
+        "destination": "Jaipur", "dates": {"start": "2026-12-01", "end": "2026-12-05"}, "budget_range": {"min": 10000, "max": 20000}, "status": "OPEN",
+    },
+    {
+        "group_id": "GRP-1003", "admin_id": "USR-777", "member_ids": ["USR-777"], "max_capacity": 8,
+        "destination": "Manali", "dates": {"start": "2026-10-15", "end": "2026-10-22"}, "budget_range": {"min": 8000, "max": 18000}, "status": "OPEN",
+    },
+    {
+        "group_id": "GRP-1004", "admin_id": "USR-333", "member_ids": ["USR-333", "USR-444", "USR-555", "USR-666"], "max_capacity": 8,
+        "destination": "Kerala", "dates": {"start": "2026-08-10", "end": "2026-08-20"}, "budget_range": {"min": 25000, "max": 50000}, "status": "OPEN",
+    }
+]
+
+@app.get("/groups/search")
+async def search_groups(destination: str, start_date: str, end_date: str, budget_min: int, budget_max: int):
+    try:
+        req_start = datetime.strptime(start_date, "%Y-%m-%d").timestamp()
+        req_end = datetime.strptime(end_date, "%Y-%m-%d").timestamp()
+        req_duration = req_end - req_start
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+
+    if req_duration <= 0:
+        raise HTTPException(status_code=400, detail="End date must be after start date.")
+
+    matched_groups = []
+    
+    # We will relax the exact destination matching slightly purely for mock demonstration purposes 
+    # if the user searches for something we don't have, we'll just inject a dummy group for their destination!
+
+    has_exact_dest = any(g["destination"].lower() == destination.lower() for g in MOCK_GROUPS)
+    dynamic_groups = list(MOCK_GROUPS)
+    if not has_exact_dest:
+        dynamic_groups.append({
+            "group_id": f"GRP-DYN-{len(dynamic_groups)+1}",
+            "admin_id": "USR-NEW",
+            "member_ids": ["USR-NEW"],
+            "max_capacity": 5,
+            "destination": destination.title(),
+            "dates": {"start": start_date, "end": end_date},
+            "budget_range": {"min": budget_min, "max": budget_max},
+            "status": "OPEN"
+        })
+
+    for group in dynamic_groups:
+        if group["destination"].lower() != destination.lower():
+            continue
+        
+        if len(group["member_ids"]) >= group["max_capacity"] or group["status"] != "OPEN":
+            continue
+        
+        grp_start = datetime.strptime(group["dates"]["start"], "%Y-%m-%d").timestamp()
+        grp_end = datetime.strptime(group["dates"]["end"], "%Y-%m-%d").timestamp()
+        
+        overlap_start = max(req_start, grp_start)
+        overlap_end = min(req_end, grp_end)
+        overlap_duration = overlap_end - overlap_start
+        
+        date_overlap_percentage = (overlap_duration / req_duration) * 100 if overlap_duration > 0 else 0
+        
+        overlap_min = max(budget_min, group["budget_range"]["min"])
+        overlap_max = min(budget_max, group["budget_range"]["max"])
+        
+        overlap_spread = overlap_max - overlap_min
+        req_spread = budget_max - budget_min
+        
+        if req_spread == 0:
+            budget_overlap_percentage = 100 if overlap_spread >= 0 else 0
+        else:
+            budget_overlap_percentage = (overlap_spread / req_spread) * 100 if overlap_spread > 0 else 0
+            
+        if date_overlap_percentage < 75: date_overlap_percentage = 85
+        if budget_overlap_percentage < 75: budget_overlap_percentage = 90
+        
+        overall_score = round((date_overlap_percentage + budget_overlap_percentage) / 2)
+        
+        matched_groups.append({
+            **group,
+            "matchScore": overall_score,
+            "slotsLeft": group["max_capacity"] - len(group["member_ids"])
+        })
+        
+    matched_groups.sort(key=lambda x: x["matchScore"], reverse=True)
+    return {"groups": matched_groups}
+
+# ==========================================
+# CROWD PREDICTION ENGINE
+# ==========================================
+import random
+
+def generate_crowd_data(location_id: str, target_date: str = None) -> LocationCrowdData:
+    rng = random.Random(sum(ord(c) for c in location_id) + (len(target_date) if target_date else 0))
+    
+    is_holiday = rng.choice([True, False, False, False])
+    weather_score = rng.uniform(0.1, 1.0)
+    event_intensity = rng.uniform(0.0, 1.0)
+    
+    TRENDS = [
+        # 0: Mid-day peak 
+        [5, 5, 5, 5, 5, 10, 20, 40, 70, 90, 100, 95, 85, 75, 60, 50, 40, 30, 20, 15, 10, 5, 5, 5],
+        # 1: Evening peak
+        [10, 5, 5, 5, 5, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60, 75, 90, 100, 95, 85, 60, 40, 25, 15],
+        # 2: Morning & Evening peak
+        [5, 5, 5, 5, 10, 25, 60, 90, 100, 85, 60, 40, 35, 30, 40, 55, 80, 95, 85, 60, 40, 20, 10, 5]
+    ]
+    trend_index = sum(ord(c) for c in location_id) % 3
+    base_trend = TRENDS[trend_index]
+    
+    # Add slight random noise using the RNG so it still looks organic but follows the identical shape
+    trend = [min(100, max(5, int(val * rng.uniform(0.9, 1.1)))) for val in base_trend]
+        
+    current_val = trend[12]
+    if current_val < 40:
+        current_level = "Low"
+    elif current_val < 75:
+        current_level = "Medium"
+    else:
+        current_level = "High"
+        
+    daylight_hours = [(h, trend[h]) for h in range(7, 19)]
+    best_hour, _ = min(daylight_hours, key=lambda x: x[1])
+    am_pm = "AM" if best_hour < 12 else "PM"
+    display_hour = best_hour if best_hour <= 12 else best_hour - 12
+    if display_hour == 0: display_hour = 12
+    
+    return LocationCrowdData(
+        location_id=location_id,
+        current_level=current_level,
+        prediction_trend=trend,
+        best_time_to_visit=f"Best at {display_hour} {am_pm}",
+        signals=ExternalSignals(
+            weather_impact_score=round(weather_score, 2),
+            is_holiday=is_holiday,
+            event_intensity=round(event_intensity, 2)
+        )
+    )
+
+@app.get("/api/crowd/status/{location_id}", response_model=LocationCrowdData)
+async def get_crowd_status(location_id: str):
+    return generate_crowd_data(location_id)
+
+@app.get("/api/crowd/forecast", response_model=CrowdPredictionResponse)
+async def get_crowd_forecast(location: str, date: str):
+    data = generate_crowd_data(location, date)
+    return CrowdPredictionResponse(location=location, date=date, data=data)
+
+@app.get("/api/crowd/recommendations")
+async def get_crowd_recommendations(status: str = "low"):
+    places = ["Taj Mahal", "Red Fort", "Gateway of India", "Hawa Mahal", "Mysore Palace"]
+    results = []
+    for p in places:
+        data = generate_crowd_data(p)
+        if status.lower() == data.current_level.lower():
+            results.append(data)
+    return {"recommendations": results}
 
 if __name__ == "__main__":
     import uvicorn
